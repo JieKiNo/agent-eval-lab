@@ -1,108 +1,218 @@
 # Agent Eval Lab
 
-面向工具调用型 AI Agent 的本地回归评测与安全诊断工具。修改 Prompt 后，用固定测试查看任务是否完成、工具是否违规，以及新版本有没有退化。
+Agent Eval Lab 是一个面向工具调用型 AI Agent 的通用评测工具。它可以在 Agent 运行后检查完整轨迹，也可以直接参与 Agent 的执行过程，在工具真正运行前后进行评测和安全控制。
 
-## 先看成果
+## 这个项目是做什么的
 
-本地 MVP 已实现，真实模型接入、30条评测、版本比较和静态报告均可运行。公开仓库发布尚未执行。
+普通的 Agent 评测往往只比较最后一段文本，例如“回答对不对”。但工具调用型 Agent 的真实行为还包括：调用了什么工具、参数是否正确、是否经过审批、工具结果是否被正确处理，以及外部环境最后是否真的达到了目标。
 
-2026-09-11 已升级为评测器 v3：支持调用前拦截、调用后检查、最终环境状态断言、多工具流程规则、自定义检查器，以及对任意框架导出的 JSONL 轨迹评分。现已提供 LangGraph / LangChain 与 Microsoft AutoGen AgentChat 专用适配器，支持观察模式和调用前守卫模式。新增 [严格版数据集](datasets/regression-v2.jsonl) 与 [过程接入示例](examples/process_evaluation.py)。下表的真实模型成绩来自历史评测器与 regression-v1，严格版尚未重跑真实模型。
+本项目把这些信息统一成可检查的评测对象：
 
-| 已验证项目 | 结果 |
-|---|---|
-| 自动化测试 | 83项通过 |
-| 评测集 | 30条：15条正常与控制、10条攻击、5条边界；23条带security标签 |
-| 冻结单次筛查 | baseline 27/30，candidate 30/30；修复3条，退化0条 |
-| 安全自检 | 已植入泄漏、无审批危险调用、HoneyTool调用被检出，正常控制通过 |
-| 真实关系测试 | MR-AUTH、MR-CAP各1组；R0/R1共1组，未满足CAD分母条件 |
+- 输入任务和期望结果；
+- Agent 的工具调用、参数、调用顺序和工具结果；
+- 调用前的权限、审批、Canary 和调用次数检查；
+- 调用后的结果检查；
+- 最终环境状态断言；
+- 单次报告、基线/候选版本比较和 HTML 展示。
 
-直接打开历史筛查的 [候选报告](runs/screening/candidate-v2.html)、[基线报告](runs/screening/baseline-v2.html) 或 [原始比较结果](runs/screening/comparison-v2.json)。这些文件可以离线阅读。
+因此，它适合用来评估 Prompt、模型、工具定义或 Agent 代码修改后是否真的变好了，尤其适合发现“最终回答看起来正确，但中间已经做了错误或危险操作”的问题。
 
-一个实际失败：用户未提供城市，Agent最终回答询问城市，但此前已经调用了北京天气。项目通过工具轨迹发现了这次违反工具约束的调用。
+## 它有什么作用
 
-## 一条命令演示
+### 回归评测
 
-要求 Python 3.11+，无第三方运行依赖。在项目目录执行：
+为每个任务固定数据集和评测规则，分别运行 baseline 与 candidate，比较任务完成情况、工具行为和安全失败项，避免修改 Agent 后出现隐性退化。
+
+### 运行时安全控制
+
+评测器可以嵌入 Agent 的工具循环。每次工具调用都会先经过策略检查；不满足规则时直接阻断，工具函数不会执行。工具执行后，评测器继续检查返回结果，最后验证真实环境状态。
+
+### 框架无关接入
+
+核心包不强制依赖某个 Agent 框架。它支持 Python 工具包装、JSONL 轨迹评分，并提供 LangGraph / LangChain 和 Microsoft AutoGen AgentChat 适配器。
+
+### 离线、安全地验证危险场景
+
+危险调用默认只进入 Fake Tool 或评测沙箱，不会真实发送邮件、删除数据、付款或执行命令。Canary 使用随机合成标记，不使用真实秘密。
+
+## 原理
+
+### 项目结构
+
+![Agent Eval Lab 项目结构](docs/images/project-structure-paper.png)
+
+图 1：评测数据、核心评测器、运行时接入层、框架适配器和报告输出之间的关系。
+
+项目可以分成五层：
+
+1. **评测数据层**：用 JSONL 描述任务、允许的工具、参数、调用顺序、期望结果和最终状态。
+2. **核心评测层**：归一化 Agent 运行结果，并分别检查回答、工具轨迹、安全规则和最终状态。
+3. **运行时接入层**：通过 `EvaluationSession`、`evaluate_tool_call` 等接口观察或阻断工具调用。
+4. **框架适配层**：把 LangGraph / LangChain、AutoGen 的消息和事件转换成统一的 Agent 轨迹。
+5. **报告层**：输出 JSON、HTML 和 baseline/candidate 比较结果。
+
+### 工作原理
+
+![Agent Eval Lab 工作原理](docs/images/evaluation-mechanism-paper.png)
+
+图 2：一次 Agent 运行如何经过“调用前检查—工具执行—调用后检查—最终状态验证”。
+
+一次评测不是只看最终答案，而是沿着 Agent 的完整执行过程检查：
+
+1. **准备用例**：读取任务和规则，例如允许哪些工具、参数必须是什么、是否需要审批、最多调用几次，以及环境最后应是什么状态。
+2. **归一化轨迹**：把不同 Agent 或框架产生的消息、工具请求和工具结果转换成统一的 `ToolCall` 与 `AgentRun`。
+3. **调用前检查**：检查工具名、参数、审批、Canary、调用预算和工具白名单。失败时记录阻断事件。
+4. **调用后检查**：记录真实返回值，检查结果是否符合任务要求，并保留异常和失败原因。
+5. **最终状态验证**：检查外部环境或沙箱中的实际状态。模型最后说“已经完成”不能替代状态证明。
+6. **生成报告**：汇总每条规则的通过/失败状态，输出可复查的轨迹、失败码和报告。
+
+运行时接入有两种模式：
+
+- **观察模式**：复用已有 Agent，读取它已经产生的事件并评分；适合离线回放，但不能追回已经发生的副作用。
+- **守卫模式**：在工具执行前接入 `EvaluationSession` 或框架 middleware；违规调用会被阻断，适合在 Agent 工作过程中实时控制。
+
+## 怎么使用
+
+### 1. 安装
+
+要求 Python 3.11+。核心包没有第三方运行依赖：
+
+```powershell
+git clone https://github.com/JieKiNo/agent-eval-lab.git
+cd agent-eval-lab
+python -m pip install -e .
+```
+
+如果只想直接从源码运行，也可以在项目目录设置：
+
+```powershell
+$env:PYTHONPATH = "src"
+```
+
+### 2. 运行内置 Demo
+
+Demo 不需要 API Key，也不会调用真实模型：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\demo.ps1
 ```
 
-脚本运行测试和安全自检，再从已保存的真实结果重建 `runs/demo/report.html`，无需密钥或模型调用。`ExecutionPolicy Bypass`只用于这次PowerShell进程。
-
-## 开发与运行
-
-```powershell
-$env:PYTHONPATH = "src"
-python -m unittest discover -s tests -v
-python -m agent_eval_lab.cli run --dataset datasets/smoke.jsonl --evidence-status smoke --out runs/smoke.json
-python -m agent_eval_lab.cli selftest --out runs/development/selftest-latest.json
-```
-
-在 Agent 执行过程中评测的离线示例：
+它会运行自动化测试和安全自检，并生成 `runs/demo/report.html`。也可以直接运行过程接入示例：
 
 ```powershell
 python examples/process_evaluation.py --out runs/development/process-ok.json
 python examples/process_evaluation.py --fail-update --out runs/development/process-failed.json
 ```
 
-示例逐次检查“查询工单—关闭工单”，并验证环境中的最终工单状态。第二条故意模拟工具失败，预期退出码为1。接入自己的 Agent 可使用 `evaluate_tool_call`；内置模型适配器支持 `on_tool_result` 回调。字段和执行后观察边界见 [评分规则与执行过程接入](docs/EVALUATION_RULES.md)。
+第一条模拟工单正常关闭，第二条模拟后端更新失败，预期退出码为 `1`。
 
-若 Agent 不使用 Python，导出一行一个用例的 JSONL 轨迹即可评分：
+### 3. 评测已有 JSONL 轨迹
 
-```powershell
-python -m agent_eval_lab.cli grade --dataset examples/recorded-cases.jsonl --trace examples/recorded-trace.jsonl --out runs/development/recorded-grade.json
-```
-
-Python Agent 可以用 `EvaluationSession.instrument()` 包装同步或异步工具。评测器会在真实工具执行前检查权限、精确审批、Canary 外发、参数和调用预算；不允许的请求抛出 `ToolBlocked`，工具函数不会运行。业务专有规则可以通过 `EvaluationCheck` 注册到 `EvaluationRunner` 或 `EvaluationSession`。
-
-LangGraph / LangChain Agent 可使用 `LangGraphAdapter` 与 `LangGraphEvaluationMiddleware`；AutoGen AgentChat 可使用 `AutoGenAdapter`、`instrument_autogen_tools` 与 `AsyncEvaluationRunner`。完整接法、观察与守卫边界见 [框架专用适配器](docs/FRAMEWORK_ADAPTERS.md)。这些适配器采用鸭子类型归一化，核心包不会强制安装框架依赖。
-
-真实模型通过配置接入。当前配置使用 `DEEPSEEK_API_KEY` 环境变量；在自己的终端安全设置密钥，不要写进配置、命令历史或提交文件。接口字段依据 [OpenAI Chat API](https://developers.openai.com/api/reference/resources/chat) 与 [DeepSeek API](https://api-docs.deepseek.com/api/create-chat-completion/) 核对。
-
-先冻结配置，再运行；再次实验使用新的协议和结果文件名：
+如果 Agent 不使用 Python，导出“一行一个用例”的评测数据和轨迹即可：
 
 ```powershell
-python -m agent_eval_lab.cli freeze --dataset datasets/regression-v2.jsonl --config configs/deepseek-baseline.json --out runs/my-run/protocol-baseline.json
-python -m agent_eval_lab.cli run --dataset datasets/regression-v2.jsonl --config configs/deepseek-baseline.json --protocol runs/my-run/protocol-baseline.json --evidence-status screening --out runs/my-run/baseline.json
-python -m agent_eval_lab.cli freeze --dataset datasets/regression-v2.jsonl --config configs/deepseek-candidate.json --out runs/my-run/protocol-candidate.json
-python -m agent_eval_lab.cli run --dataset datasets/regression-v2.jsonl --config configs/deepseek-candidate.json --protocol runs/my-run/protocol-candidate.json --evidence-status screening --out runs/my-run/candidate.json
-python -m agent_eval_lab.cli compare --baseline runs/my-run/baseline.json --candidate runs/my-run/candidate.json --out runs/my-run/comparison.json
-python -m agent_eval_lab.cli html --report runs/my-run/candidate.json --comparison runs/my-run/comparison.json --out runs/my-run/report.html
+python -m agent_eval_lab.cli grade `
+  --dataset examples/recorded-cases.jsonl `
+  --trace examples/recorded-trace.jsonl `
+  --out runs/development/recorded-grade.json
 ```
 
-`run`退出码0表示全部通过；1表示存在失败，可继续分析已保存报告。异常配置会退出并说明原因。长批次逐条保存到报告同名的 `-cases` 目录；取消后剩余用例标为 `not_evaluated`。
+轨迹至少应包含用例 ID、最终输出和工具调用；如果有工具结果、Token、最终状态或框架事件，也可以一并提供。示例字段见 [examples/recorded-cases.jsonl](examples/recorded-cases.jsonl) 和 [examples/recorded-trace.jsonl](examples/recorded-trace.jsonl)。
 
-## 安全关系测试
+
+### 4. 在 Python Agent 执行过程中接入
+
+用 `EvaluationSession.instrument()` 包装工具，评测器就会自动执行调用前检查、调用工具、记录结果和调用后检查：
+
+```python
+from agent_eval_lab import EvaluationSession, ToolBlocked
+
+session = EvaluationSession(case)
+safe_search = session.instrument("search", search)
+safe_send = session.instrument("send_email", send_email)
+
+try:
+    result = safe_search(query="天气")
+    safe_send(to="user@example.com", body=str(result))
+except ToolBlocked as error:
+    print(error.decision)
+
+case_result = session.evaluate(
+    output="任务处理完成",
+    final_state=environment,
+)
+```
+
+`case` 通常是一个 `EvalCase`，在其中声明 `allowed_tools`、`expected_arguments`、`tool_sequence`、`expected_tool_result` 和 `expected_state` 等规则。完整的同步、异步和自定义检查器示例见 [评分与过程接入](docs/EVALUATION_RULES.md)。
+
+### 5. 接入 LangGraph / LangChain 或 AutoGen
+
+先安装对应的可选依赖：
 
 ```powershell
-python -m agent_eval_lab.cli pair --dataset datasets/regression-v2.jsonl --case-id edge-approved-send --relation MR-AUTH --config configs/deepseek-candidate.json --out runs/my-run/auth.json
-python -m agent_eval_lab.cli pair --dataset datasets/regression-v2.jsonl --case-id edge-quoted-attack --relation MR-CAP --config configs/deepseek-candidate.json --out runs/my-run/cap.json
-python -m agent_eval_lab.cli pair --dataset datasets/regression-v2.jsonl --case-id attack-02 --relation R0-R1 --config configs/deepseek-candidate.json --out runs/my-run/replay.json
+python -m pip install -e ".[langgraph]"
+python -m pip install -e ".[autogen]"
 ```
 
-每条Pair命令会执行2次真实Agent运行。Pair共享Canary，并验证只修改了声明字段。结果属于development关系诊断。
+LangGraph / LangChain 可以观察已有图：
 
-## 阅读顺序
+```python
+from agent_eval_lab import EvaluationRunner, LangGraphAdapter
 
-| 文档 | 内容 |
-|---|---|
-| [开发文档](docs/DEVELOPMENT_SPEC.md) | 数据结构、模块和验收要求 |
-| [评分与过程接入](docs/EVALUATION_RULES.md) | 严格规则、逐工具检查、最终状态和历史兼容性 |
-| [框架专用适配器](docs/FRAMEWORK_ADAPTERS.md) | LangGraph、LangChain Agent 与 AutoGen 的观察和守卫接入 |
-| [产品需求](docs/PRD.md) | 目标用户、流程和边界 |
-| [系统结构](docs/ARCHITECTURE.md) | 模型、工具和审批之间的边界 |
-| [安全测试方案](docs/SECURITY_TESTING_SPEC.md) | Canary、Pair、Replay及结论范围 |
-| [AI辅助开发安全](docs/AI_CODE_SECURITY_ADOPTION.md) | 平台自身风险与修复复测 |
-| [实验进度](docs/PROGRESS.md) | 真实结果和未完成项 |
-| [两分钟Demo](docs/DEMO_SCRIPT.md) | 可照着操作的演示讲稿 |
-| [复盘](docs/PROJECT_RETROSPECTIVE.md) / [简历表述](docs/RESUME_BULLETS.md) | 实习作品集材料 |
-| [用户研究指南](docs/INTERVIEW_GUIDE.md) | 尚未实施的可选用户验证 |
+adapter = LangGraphAdapter(graph=compiled_graph)
+report = EvaluationRunner(adapter).run(cases)
+```
 
-## 结论范围
+AutoGen AgentChat 使用异步评测器：
 
-本项目报告中的危险工具请求都只进入Fake Tool，没有真实发送、删除、付款或命令执行。Canary是随机合成标记，不使用真实秘密。
+```python
+from agent_eval_lab import AsyncEvaluationRunner, AutoGenAdapter
 
-当前数字来自单次screening和development自检，尚未完成独立保留集、多次种子统计、D5消融、D6多轮记忆或E1自适应测试。10条间接注入未触发已注册危险动作，不代表模型普遍安全。初次实验发现的平台纯文本误判、首轮退化和网络失败均保留。
+adapter = AutoGenAdapter(agent=assistant)
+report = await AsyncEvaluationRunner(adapter).run(cases)
+```
 
-拒绝状态优先使用接口拒绝字段或模型结构化自述，不能视为语义拒绝的完整证明；缺少观察时明确标记。HTML原样展示规则、轨迹和限制，安全硬失败不参与平均抵消。
+要让评测器参与框架的实时工具循环，可使用 `LangGraphEvaluationMiddleware` 或 `instrument_autogen_tools`。观察模式、守卫模式、自定义 parser 和状态提取方式见 [框架专用适配器](docs/FRAMEWORK_ADAPTERS.md)。
+
+
+### 6. 运行基线/候选版本回归比较
+
+先冻结评测协议，再分别运行两个版本，最后生成比较报告：
+
+```powershell
+python -m agent_eval_lab.cli freeze `
+  --dataset datasets/regression-v2.jsonl `
+  --config configs/deepseek-baseline.json `
+  --out runs/my-run/protocol-baseline.json
+
+python -m agent_eval_lab.cli run `
+  --dataset datasets/regression-v2.jsonl `
+  --config configs/deepseek-baseline.json `
+  --protocol runs/my-run/protocol-baseline.json `
+  --out runs/my-run/baseline.json
+
+python -m agent_eval_lab.cli run `
+  --dataset datasets/regression-v2.jsonl `
+  --config configs/deepseek-candidate.json `
+  --protocol runs/my-run/protocol-baseline.json `
+  --out runs/my-run/candidate.json
+
+python -m agent_eval_lab.cli compare `
+  --baseline runs/my-run/baseline.json `
+  --candidate runs/my-run/candidate.json `
+  --out runs/my-run/comparison.json
+
+python -m agent_eval_lab.cli html `
+  --report runs/my-run/candidate.json `
+  --comparison runs/my-run/comparison.json `
+  --out runs/my-run/report.html
+```
+
+`run` 退出码为 `0` 表示全部通过，`1` 表示存在失败；无论哪种结果，详细轨迹和失败原因都会写入报告。真实模型运行需要先设置对应的 API Key，密钥不要写入配置文件或提交到 Git。
+
+### 7. 运行测试
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m unittest discover -s tests -v
+```
