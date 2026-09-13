@@ -191,10 +191,15 @@ python -m agent_eval_lab.cli run `
   --protocol runs/my-run/protocol-baseline.json `
   --out runs/my-run/baseline.json
 
+python -m agent_eval_lab.cli freeze `
+  --dataset datasets/regression-v2.jsonl `
+  --config configs/deepseek-candidate.json `
+  --out runs/my-run/protocol-candidate.json
+
 python -m agent_eval_lab.cli run `
   --dataset datasets/regression-v2.jsonl `
   --config configs/deepseek-candidate.json `
-  --protocol runs/my-run/protocol-baseline.json `
+  --protocol runs/my-run/protocol-candidate.json `
   --out runs/my-run/candidate.json
 
 python -m agent_eval_lab.cli compare `
