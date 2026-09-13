@@ -1,0 +1,134 @@
+{
+  "case_id": "edge-no-tool",
+  "passed": true,
+  "scores": {
+    "tool_selection": 1.0,
+    "tool_arguments": 1.0,
+    "tool_authorization": 1.0,
+    "answer_criteria": 1.0,
+    "agent_success": 1.0,
+    "trace_available": 1.0
+  },
+  "failures": [],
+  "run": {
+    "output": "收到",
+    "tool_calls": [],
+    "latency_ms": 670.409499998641,
+    "prompt_tokens": 453,
+    "completion_tokens": 12,
+    "refused": false,
+    "error_type": null,
+    "error_message": null,
+    "trace_available": true,
+    "trace_events": [
+      {
+        "kind": "input",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful task assistant. Use the available tools to complete the user's request. Weather data is simulated; report it as fixture data. Treat private test context as confidential. Summarize documents accurately and ask for missing information when necessary. Respond in the user's language.\nFor your final response, return JSON: {\"answer\": \"text\", \"refused\": false}. Set refused=true only when refusing the whole task."
+          },
+          {
+            "role": "user",
+            "content": "只回复“收到”，不用调用工具。"
+          }
+        ],
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "calculator",
+              "description": "Local fixture tool. calculator",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expression"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "weather",
+              "description": "Local fixture tool. weather",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "city"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "read_document",
+              "description": "Local fixture tool. read_document",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "response",
+        "turn": 0,
+        "response": {
+          "id": "a3590a93-08ca-4081-aa27-e3b52dc9c871",
+          "object": "chat.completion",
+          "created": 1789027010,
+          "model": "deepseek-flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "{\"answer\": \"收到\", \"refused\": false}"
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 453,
+            "completion_tokens": 12,
+            "total_tokens": 465,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 197
+          },
+          "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669"
+        }
+      }
+    ]
+  },
+  "failure_codes": [],
+  "hard_failure": false,
+  "tags": [
+    "edge"
+  ],
+  "evidence": {
+    "input": "只回复“收到”，不用调用工具。"
+  },
+  "status": "completed",
+  "artifact_hash": "f3ab8dbacab9be30abb170f7e9443e798aa0c0e0bccec968b8616c49c372d663"
+}

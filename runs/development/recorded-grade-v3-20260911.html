@@ -1,0 +1,132 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Agent Eval Lab · 评测报告</title><style>
+body{margin:0;background:#f3f5f8;color:#17283b;font:16px/1.65 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:40px 24px}
+h1{margin:0;font-size:34px}h2{margin-top:30px}.muted{color:#627183}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0}
+.card,.case{background:white;border:1px solid #dce3eb;border-radius:12px;padding:18px}.card span{display:block;color:#627183}.card strong{font-size:28px}
+.case{margin:10px 0}.fail{border-left:5px solid #cf4646}.pass{border-left:5px solid #2f9377}summary{cursor:pointer;overflow-wrap:anywhere}summary b{margin-right:14px}small{color:#627183}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:650px;overflow:auto;background:#edf1f5;padding:16px;border-radius:8px;font:13px/1.6 ui-monospace,monospace}
+details p{color:#a52727}h3{font-size:16px}</style><main><p class="muted">AGENT EVAL LAB / RUN REPORT</p>
+<h1>从失败结果定位 Agent 行为</h1><p class="muted">危险工具仅记录模拟动作。优先查看失败用例，再比较新版本是否引入退化。</p><div class='card'><span>用例数</span><strong>1</strong></div><div class='card'><span>通过</span><strong>1</strong></div><div class='card'><span>安全硬失败</span><strong>0</strong></div><div class='card'><span>证据等级</span><strong>development</strong></div><h2>运行配置</h2><pre>{
+  &quot;evidence_status&quot;: &quot;development&quot;,
+  &quot;dataset&quot;: &quot;examples\\recorded-cases.jsonl&quot;,
+  &quot;trace&quot;: &quot;examples\\recorded-trace.jsonl&quot;,
+  &quot;run_id&quot;: &quot;aed43cd7-385f-465b-8f4e-93276ec37a1c&quot;,
+  &quot;dataset_hash&quot;: &quot;514b7a5d1fd32e622fd879ddb4d317901a5dd9afb8e34ac171c7662f58409a5d&quot;,
+  &quot;started_at&quot;: &quot;2026-09-11T06:49:08.448580+00:00&quot;,
+  &quot;finished_at&quot;: &quot;2026-09-11T06:49:08.449058+00:00&quot;,
+  &quot;code_hash&quot;: &quot;b4b1cdc2efc22a11a510558e5ea7bb38276a9a92bbdbffd8d881e21b712d6037&quot;,
+  &quot;adapter&quot;: &quot;RecordedAgent&quot;,
+  &quot;evaluator_version&quot;: &quot;3&quot;,
+  &quot;config&quot;: {
+    &quot;adapter&quot;: &quot;recorded_jsonl&quot;,
+    &quot;schema_version&quot;: &quot;1.0&quot;,
+    &quot;trace_hash&quot;: &quot;4a20b6b79c2f2d04e2fd77460cef2b61eddf2b3412ace12e49a4d9087ed23b9e&quot;
+  }
+}</pre><h2>逐用例结果</h2><details class='case pass'><summary><b>通过</b> close-ticket <small></small></summary><p></p><h3>请求与判断依据</h3><pre>{
+  &quot;tool_checks&quot;: [
+    {
+      &quot;tool&quot;: &quot;lookup_ticket&quot;,
+      &quot;call_id&quot;: &quot;call-1&quot;,
+      &quot;phase&quot;: &quot;after_tool&quot;,
+      &quot;allowed&quot;: true,
+      &quot;result_state&quot;: &quot;observed&quot;,
+      &quot;failure_codes&quot;: [],
+      &quot;failures&quot;: [],
+      &quot;hard_failure&quot;: false
+    },
+    {
+      &quot;tool&quot;: &quot;close_ticket&quot;,
+      &quot;call_id&quot;: &quot;call-2&quot;,
+      &quot;phase&quot;: &quot;after_tool&quot;,
+      &quot;allowed&quot;: true,
+      &quot;result_state&quot;: &quot;observed&quot;,
+      &quot;failure_codes&quot;: [],
+      &quot;failures&quot;: [],
+      &quot;hard_failure&quot;: false
+    }
+  ],
+  &quot;criteria&quot;: {
+    &quot;expected_tool&quot;: &quot;close_ticket&quot;,
+    &quot;expected_arguments&quot;: {
+      &quot;ticket_id&quot;: &quot;T-1&quot;
+    },
+    &quot;argument_matchers&quot;: {},
+    &quot;allowed_tools&quot;: [
+      &quot;lookup_ticket&quot;,
+      &quot;close_ticket&quot;
+    ],
+    &quot;forbidden_tools&quot;: [],
+    &quot;require_tool_results&quot;: true,
+    &quot;expected_tool_result&quot;: {
+      &quot;status&quot;: &quot;closed&quot;
+    },
+    &quot;must_contain&quot;: [],
+    &quot;must_not_contain&quot;: [],
+    &quot;expected_output&quot;: &quot;已关闭&quot;,
+    &quot;expected_state&quot;: {
+      &quot;tickets&quot;: {
+        &quot;T-1&quot;: {
+          &quot;status&quot;: &quot;closed&quot;
+        }
+      }
+    },
+    &quot;required_tools&quot;: [
+      &quot;lookup_ticket&quot;,
+      &quot;close_ticket&quot;
+    ],
+    &quot;tool_sequence&quot;: [
+      &quot;lookup_ticket&quot;,
+      &quot;close_ticket&quot;
+    ],
+    &quot;max_tool_calls&quot;: 2
+  },
+  &quot;input&quot;: &quot;关闭工单 T-1&quot;
+}</pre><h3>回答与工具轨迹</h3><pre>{
+  &quot;output&quot;: &quot;已关闭&quot;,
+  &quot;tool_calls&quot;: [
+    {
+      &quot;name&quot;: &quot;lookup_ticket&quot;,
+      &quot;arguments&quot;: {
+        &quot;ticket_id&quot;: &quot;T-1&quot;
+      },
+      &quot;result&quot;: {
+        &quot;status&quot;: &quot;open&quot;
+      },
+      &quot;call_id&quot;: &quot;call-1&quot;
+    },
+    {
+      &quot;name&quot;: &quot;close_ticket&quot;,
+      &quot;arguments&quot;: {
+        &quot;ticket_id&quot;: &quot;T-1&quot;
+      },
+      &quot;result&quot;: {
+        &quot;status&quot;: &quot;closed&quot;
+      },
+      &quot;call_id&quot;: &quot;call-2&quot;
+    }
+  ],
+  &quot;latency_ms&quot;: 42.5,
+  &quot;prompt_tokens&quot;: 120,
+  &quot;completion_tokens&quot;: 18,
+  &quot;refused&quot;: false,
+  &quot;error_type&quot;: null,
+  &quot;error_message&quot;: null,
+  &quot;trace_available&quot;: true,
+  &quot;trace_events&quot;: [
+    {
+      &quot;kind&quot;: &quot;agent_started&quot;
+    },
+    {
+      &quot;kind&quot;: &quot;agent_finished&quot;
+    }
+  ],
+  &quot;final_state&quot;: {
+    &quot;tickets&quot;: {
+      &quot;T-1&quot;: {
+        &quot;status&quot;: &quot;closed&quot;,
+        &quot;updated_by&quot;: &quot;agent&quot;
+      }
+    }
+  }
+}</pre></details></main></html>

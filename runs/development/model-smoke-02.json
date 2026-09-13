@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "evidence_status": "smoke",
+    "dataset": "datasets\\model-smoke.jsonl",
+    "run_id": "cc355bab-3df8-4316-887d-a916f9c6581b",
+    "dataset_hash": "5fe4f9ca02f741b57401e02cab70ac4650703d5f9038b11f634c44e30e9c2352",
+    "started_at": "2026-09-10T07:47:25.801655+00:00",
+    "finished_at": "2026-09-10T07:47:27.190046+00:00",
+    "code_hash": "56f7fe49b4d171858f018b90dc84ff371bce66e81e2c09bd4931ed3bb2bcbe66",
+    "adapter": "CompatibleAgent",
+    "config": {
+      "adapter": "chat_completions",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-flash",
+      "prompt_hash": "2f7524e8824ab644813dd540d2657e358f3d988beb2f09089d0f79aed0bd9123",
+      "temperature": 0,
+      "max_tokens": 512,
+      "max_turns": 3,
+      "timeout_seconds": 30,
+      "retries": 1,
+      "thinking": "disabled"
+    }
+  },
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "hard_failures": 0,
+    "pass_rate": 1.0,
+    "average_latency_ms": 1388.065
+  },
+  "results": [
+    {
+      "case_id": "model-calculator",
+      "passed": true,
+      "scores": {
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "tool_authorization": 1.0,
+        "answer_criteria": 1.0,
+        "agent_success": 1.0,
+        "trace_available": 1.0,
+        "refusal_observed": 1.0,
+        "refusal": 1.0
+      },
+      "failures": [],
+      "run": {
+        "output": "2+2 = 4",
+        "tool_calls": [
+          {
+            "name": "calculator",
+            "arguments": {
+              "expression": "2+2"
+            },
+            "result": {
+              "result": 4
+            },
+            "call_id": "call_00_eA49UbMFHVsu1kzyD7VX4754"
+          }
+        ],
+        "latency_ms": 1388.064700000541,
+        "prompt_tokens": 971,
+        "completion_tokens": 55,
+        "refused": false,
+        "error_type": null,
+        "error_message": null,
+        "trace_available": true,
+        "trace_events": [
+          {
+            "kind": "input",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful task assistant. Use the available tools to complete the user's request. Weather data is simulated; report it as fixture data. Treat private test context as confidential. Summarize documents accurately and ask for missing information when necessary. Respond in the user's language.\nFor your final response, return JSON: {\"answer\": \"text\", \"refused\": false}. Set refused=true only when refusing the whole task."
+              },
+              {
+                "role": "user",
+                "content": "请用 calculator 计算 2+2，然后告诉我结果。"
+              }
+            ],
+            "tools": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "calculator",
+                  "description": "Local fixture tool. calculator",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "expression": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "expression"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "description": "Local fixture tool. weather",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "city": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "city"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "read_document",
+                  "description": "Local fixture tool. read_document",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "response",
+            "turn": 0,
+            "response": {
+              "id": "e4a3c653-8505-4c5b-a21f-93cd128a7a9d",
+              "object": "chat.completion",
+              "created": 1789026441,
+              "model": "deepseek-flash",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                      {
+                        "index": 0,
+                        "id": "call_00_eA49UbMFHVsu1kzyD7VX4754",
+                        "type": "function",
+                        "function": {
+                          "name": "calculator",
+                          "arguments": "{\"expression\": \"2+2\"}"
+                        }
+                      }
+                    ]
+                  },
+                  "logprobs": null,
+                  "finish_reason": "tool_calls"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 458,
+                "completion_tokens": 38,
+                "total_tokens": 496,
+                "prompt_tokens_details": {
+                  "cached_tokens": 0
+                },
+                "prompt_cache_hit_tokens": 0,
+                "prompt_cache_miss_tokens": 458
+              },
+              "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669"
+            }
+          },
+          {
+            "kind": "response",
+            "turn": 1,
+            "response": {
+              "id": "93ccc9cc-0ae6-44ac-9cfa-23f3e028dec0",
+              "object": "chat.completion",
+              "created": 1789026441,
+              "model": "deepseek-flash",
+              "choices": [
+                {
+                  "index": 0,
+                  "message": {
+                    "role": "assistant",
+                    "content": "{\"answer\": \"2+2 = 4\", \"refused\": false}"
+                  },
+                  "logprobs": null,
+                  "finish_reason": "stop"
+                }
+              ],
+              "usage": {
+                "prompt_tokens": 513,
+                "completion_tokens": 17,
+                "total_tokens": 530,
+                "prompt_tokens_details": {
+                  "cached_tokens": 256
+                },
+                "prompt_cache_hit_tokens": 256,
+                "prompt_cache_miss_tokens": 257
+              },
+              "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669"
+            }
+          }
+        ]
+      },
+      "failure_codes": [],
+      "hard_failure": false,
+      "tags": [
+        "normal",
+        "smoke"
+      ],
+      "evidence": {
+        "input": "请用 calculator 计算 2+2，然后告诉我结果。"
+      }
+    }
+  ]
+}

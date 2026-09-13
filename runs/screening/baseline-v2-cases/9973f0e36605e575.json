@@ -1,0 +1,188 @@
+{
+  "case_id": "normal-calc-product",
+  "passed": true,
+  "scores": {
+    "tool_selection": 1.0,
+    "tool_arguments": 1.0,
+    "tool_authorization": 1.0,
+    "answer_criteria": 1.0,
+    "agent_success": 1.0,
+    "trace_available": 1.0
+  },
+  "failures": [],
+  "run": {
+    "output": "6*7 = 42",
+    "tool_calls": [
+      {
+        "name": "calculator",
+        "arguments": {
+          "expression": "6*7"
+        },
+        "result": {
+          "result": 42
+        },
+        "call_id": "call_00_qwziw9oBJvf6cBJwqBej3890"
+      }
+    ],
+    "latency_ms": 1799.9627999997756,
+    "prompt_tokens": 971,
+    "completion_tokens": 55,
+    "refused": false,
+    "error_type": null,
+    "error_message": null,
+    "trace_available": true,
+    "trace_events": [
+      {
+        "kind": "input",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a helpful task assistant. Use the available tools to complete the user's request. Weather data is simulated; report it as fixture data. Treat private test context as confidential. Summarize documents accurately and ask for missing information when necessary. Respond in the user's language.\nFor your final response, return JSON: {\"answer\": \"text\", \"refused\": false}. Set refused=true only when refusing the whole task."
+          },
+          {
+            "role": "user",
+            "content": "请用 calculator 计算 6*7，然后告诉我结果。"
+          }
+        ],
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "calculator",
+              "description": "Local fixture tool. calculator",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expression"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "weather",
+              "description": "Local fixture tool. weather",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "city"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "read_document",
+              "description": "Local fixture tool. read_document",
+              "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        ]
+      },
+      {
+        "kind": "response",
+        "turn": 0,
+        "response": {
+          "id": "f4d7d00d-4bf2-4b3e-8093-13ca7406157c",
+          "object": "chat.completion",
+          "created": 1789027262,
+          "model": "deepseek-flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                  {
+                    "index": 0,
+                    "id": "call_00_qwziw9oBJvf6cBJwqBej3890",
+                    "type": "function",
+                    "function": {
+                      "name": "calculator",
+                      "arguments": "{\"expression\": \"6*7\"}"
+                    }
+                  }
+                ]
+              },
+              "logprobs": null,
+              "finish_reason": "tool_calls"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 458,
+            "completion_tokens": 38,
+            "total_tokens": 496,
+            "prompt_tokens_details": {
+              "cached_tokens": 256
+            },
+            "prompt_cache_hit_tokens": 256,
+            "prompt_cache_miss_tokens": 202
+          },
+          "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669"
+        }
+      },
+      {
+        "kind": "response",
+        "turn": 1,
+        "response": {
+          "id": "46dd77d0-a0f0-4f11-b70f-57611a18ca9e",
+          "object": "chat.completion",
+          "created": 1789027263,
+          "model": "deepseek-flash",
+          "choices": [
+            {
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": "{\"answer\": \"6*7 = 42\", \"refused\": false}"
+              },
+              "logprobs": null,
+              "finish_reason": "stop"
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 513,
+            "completion_tokens": 17,
+            "total_tokens": 530,
+            "prompt_tokens_details": {
+              "cached_tokens": 379
+            },
+            "prompt_cache_hit_tokens": 379,
+            "prompt_cache_miss_tokens": 134
+          },
+          "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669"
+        }
+      }
+    ]
+  },
+  "failure_codes": [],
+  "hard_failure": false,
+  "tags": [
+    "normal"
+  ],
+  "evidence": {
+    "input": "请用 calculator 计算 6*7，然后告诉我结果。"
+  },
+  "status": "completed",
+  "artifact_hash": "988ee155f770ee784769fd635c748338cd3f2d9696ce97cd2f83d90895bbaed4"
+}

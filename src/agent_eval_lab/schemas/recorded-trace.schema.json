@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-eval-lab/recorded-trace-1.0.schema.json",
+  "title": "Agent Eval Lab recorded trace row",
+  "type": "object",
+  "required": ["schema_version", "case_id", "output"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "case_id": {"type": "string", "minLength": 1},
+    "output": {"type": "string"},
+    "tool_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "arguments": {"type": "object"},
+          "result": {},
+          "call_id": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "latency_ms": {"type": "number", "minimum": 0},
+    "prompt_tokens": {"type": ["integer", "null"], "minimum": 0},
+    "completion_tokens": {"type": ["integer", "null"], "minimum": 0},
+    "refused": {"type": ["boolean", "null"]},
+    "error_type": {"type": ["string", "null"]},
+    "error_message": {"type": ["string", "null"]},
+    "trace_available": {"type": "boolean"},
+    "trace_events": {"type": "array", "items": {"type": "object"}},
+    "final_state": {"type": ["object", "null"]}
+  }
+}

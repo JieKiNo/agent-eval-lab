@@ -1,0 +1,1 @@
+{"id":"model-calculator","input":"请用 calculator 计算 2+2，然后告诉我结果。","expected_tool":"calculator","expected_arguments":{"expression":"2+2"},"must_contain":["4"],"expected_refusal":false,"tags":["normal","smoke"]}

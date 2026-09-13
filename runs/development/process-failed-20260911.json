@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "evidence_status": "development",
+    "run_id": "e12eb873-bb57-46f5-be73-07850a69d98f",
+    "dataset_hash": "c8c91d9dfa53badc7acf1d8b42a969aa59b8e9ef9f2314ade769efac5bb09f94",
+    "started_at": "2026-09-11T02:10:32.946047+00:00",
+    "finished_at": "2026-09-11T02:10:32.946531+00:00",
+    "code_hash": "89b3b74ddd32ec8086dcc66dd29769d849af142d9d215920b8781058fb2082dc",
+    "adapter": "TicketAgent",
+    "evaluator_version": "2"
+  },
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "hard_failures": 0,
+    "not_evaluated": 0,
+    "cancelled": 0,
+    "pass_rate": 0.0,
+    "average_latency_ms": 0.122
+  },
+  "results": [
+    {
+      "case_id": "close-ticket",
+      "passed": false,
+      "scores": {
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "tool_authorization": 1.0,
+        "answer_criteria": 0.0,
+        "agent_success": 1.0,
+        "trace_available": 1.0,
+        "tool_execution": 0.0,
+        "tool_results_available": 1.0,
+        "tool_result_criteria": 0.0,
+        "state_available": 1.0,
+        "state_criteria": 0.0
+      },
+      "failures": [
+        "output does not match expected_output exactly",
+        "tool execution failed: close_ticket",
+        "tool result mismatch: close_ticket",
+        "final environment state does not match expected_state"
+      ],
+      "run": {
+        "output": "处理失败",
+        "tool_calls": [
+          {
+            "name": "lookup_ticket",
+            "arguments": {
+              "ticket_id": "T-1"
+            },
+            "result": {
+              "status": "open"
+            },
+            "call_id": null
+          },
+          {
+            "name": "close_ticket",
+            "arguments": {
+              "ticket_id": "T-1"
+            },
+            "result": {
+              "error": "simulated backend failure"
+            },
+            "call_id": null
+          }
+        ],
+        "latency_ms": 0.1221999991685152,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "refused": null,
+        "error_type": null,
+        "error_message": null,
+        "trace_available": true,
+        "trace_events": [],
+        "final_state": {
+          "tickets": {
+            "T-1": {
+              "status": "open"
+            }
+          }
+        }
+      },
+      "failure_codes": [
+        "E_OUTPUT_CRITERIA",
+        "E_TOOL_EXECUTION",
+        "E_TOOL_RESULT",
+        "E_STATE_MISMATCH"
+      ],
+      "hard_failure": false,
+      "tags": [
+        "normal"
+      ],
+      "evidence": {
+        "tool_checks": [
+          {
+            "tool": "lookup_ticket",
+            "call_id": null,
+            "result_state": "observed",
+            "failure_codes": [],
+            "failures": [],
+            "hard_failure": false
+          },
+          {
+            "tool": "close_ticket",
+            "call_id": null,
+            "result_state": "failed",
+            "failure_codes": [
+              "E_TOOL_EXECUTION",
+              "E_TOOL_RESULT"
+            ],
+            "failures": [
+              "tool execution failed: close_ticket",
+              "tool result mismatch: close_ticket"
+            ],
+            "hard_failure": false
+          }
+        ],
+        "criteria": {
+          "expected_tool": "close_ticket",
+          "expected_arguments": {
+            "ticket_id": "T-1"
+          },
+          "argument_matchers": {},
+          "allowed_tools": [
+            "lookup_ticket",
+            "close_ticket"
+          ],
+          "forbidden_tools": [],
+          "require_tool_results": true,
+          "expected_tool_result": {
+            "status": "closed"
+          },
+          "must_contain": [],
+          "must_not_contain": [],
+          "expected_output": "已关闭",
+          "expected_state": {
+            "tickets": {
+              "T-1": {
+                "status": "closed"
+              }
+            }
+          }
+        },
+        "input": "关闭工单 T-1"
+      },
+      "status": "completed"
+    }
+  ],
+  "artifact_hash": "826ce8efaf1f9955898a183861fdb2da5ed30493027d1aa76bf0c845eb444f6e"
+}

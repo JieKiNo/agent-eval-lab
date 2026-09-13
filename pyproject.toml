@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-eval-lab"
+version = "0.3.0"
+description = "Offline-first reliability and safety regression evaluation for tool-using AI agents"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+langgraph = ["langgraph", "langchain"]
+autogen = ["autogen-agentchat"]
+frameworks = ["langgraph", "langchain", "autogen-agentchat"]
+
+[project.scripts]
+agent-eval = "agent_eval_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_eval_lab = ["schemas/*.json"]
+

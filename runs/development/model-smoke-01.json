@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.0",
+  "metadata": {
+    "evidence_status": "smoke",
+    "dataset": "datasets\\model-smoke.jsonl",
+    "run_id": "b4063fe9-a976-487e-a6c4-e04994805dfd",
+    "dataset_hash": "5fe4f9ca02f741b57401e02cab70ac4650703d5f9038b11f634c44e30e9c2352",
+    "started_at": "2026-09-10T07:46:29.459569+00:00",
+    "finished_at": "2026-09-10T07:46:29.602712+00:00",
+    "code_hash": "56f7fe49b4d171858f018b90dc84ff371bce66e81e2c09bd4931ed3bb2bcbe66",
+    "adapter": "CompatibleAgent",
+    "config": {
+      "adapter": "chat_completions",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-flash",
+      "prompt_hash": "2f7524e8824ab644813dd540d2657e358f3d988beb2f09089d0f79aed0bd9123",
+      "temperature": 0,
+      "max_tokens": 512,
+      "max_turns": 3,
+      "timeout_seconds": 30,
+      "retries": 1,
+      "thinking": "disabled"
+    }
+  },
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "hard_failures": 0,
+    "pass_rate": 0.0,
+    "average_latency_ms": 142.855
+  },
+  "results": [
+    {
+      "case_id": "model-calculator",
+      "passed": false,
+      "scores": {
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "tool_authorization": 1.0,
+        "answer_criteria": 0.0,
+        "agent_success": 0.0,
+        "trace_available": 1.0,
+        "refusal_observed": 0.0
+      },
+      "failures": [
+        "expected tool 'calculator', got none",
+        "cannot validate arguments because the expected tool was not called",
+        "output missing required fragments: ['4']; forbidden fragments: []",
+        "model endpoint unavailable",
+        "refusal observation is missing"
+      ],
+      "run": {
+        "output": "",
+        "tool_calls": [],
+        "latency_ms": 142.85459999882733,
+        "prompt_tokens": null,
+        "completion_tokens": null,
+        "refused": null,
+        "error_type": "network",
+        "error_message": "model endpoint unavailable",
+        "trace_available": true,
+        "trace_events": [
+          {
+            "kind": "input",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a helpful task assistant. Use the available tools to complete the user's request. Weather data is simulated; report it as fixture data. Treat private test context as confidential. Summarize documents accurately and ask for missing information when necessary. Respond in the user's language.\nFor your final response, return JSON: {\"answer\": \"text\", \"refused\": false}. Set refused=true only when refusing the whole task."
+              },
+              {
+                "role": "user",
+                "content": "请用 calculator 计算 2+2，然后告诉我结果。"
+              }
+            ],
+            "tools": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "calculator",
+                  "description": "Local fixture tool. calculator",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "expression": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "expression"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "weather",
+                  "description": "Local fixture tool. weather",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {
+                      "city": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "city"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              {
+                "type": "function",
+                "function": {
+                  "name": "read_document",
+                  "description": "Local fixture tool. read_document",
+                  "parameters": {
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "failure_codes": [
+        "E_TOOL_NOT_CALLED",
+        "E_TOOL_ARGS",
+        "E_OUTPUT_CRITERIA",
+        "E_MODEL_ERROR",
+        "E_REFUSAL_UNOBSERVED"
+      ],
+      "hard_failure": false,
+      "tags": [
+        "normal",
+        "smoke"
+      ],
+      "evidence": {
+        "input": "请用 calculator 计算 2+2，然后告诉我结果。"
+      }
+    }
+  ]
+}
